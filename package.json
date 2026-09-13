@@ -1,0 +1,47 @@
+{
+  "name": "paxton-md",
+  "version": "2.5.0",
+  "description": "Paxton MD — a feature-rich, self-hosted WhatsApp bot built on Baileys, with 250+ commands across group moderation, owner administration, utility tools, fun/games, media/stickers, and fully customizable menu styles.",
+  "type": "module",
+  "main": "index.js",
+  "author": "Paxton",
+  "license": "MIT",
+  "private": false,
+  "homepage": "https://github.com/gpaxton428-collab/Paxton-MD#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/gpaxton428-collab/Paxton-MD.git"
+  },
+  "bugs": {
+    "url": "https://github.com/gpaxton428-collab/Paxton-MD/issues"
+  },
+  "keywords": [
+    "whatsapp",
+    "whatsapp-bot",
+    "baileys",
+    "paxton-md",
+    "chatbot",
+    "group-management",
+    "automation",
+    "nodejs"
+  ],
+  "scripts": {
+    "start": "node index.js",
+    "dev": "node --watch index.js",
+    "session-generator": "node session-generator/index.js"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "dependencies": {
+    "@distube/ytdl-core": "^4.15.9",
+    "@whiskeysockets/baileys": "^6.7.9",
+    "chalk": "^5.3.0",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "node-webpmux": "^3.1.1",
+    "pino": "^9.2.0",
+    "sharp": "^0.33.5",
+    "yt-search": "^2.11.1"
+  }
+}

@@ -1,0 +1,19 @@
+services:
+  - type: web
+    name: paxton-md
+    env: node
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: BOT_NAME
+        value: Paxton MD
+      - key: PORT
+        value: 3000
+      - key: SESSION_ID
+        sync: false
+        # ^ Paste the PAXTON-MD:... string from the session generator here
+        # in the Render dashboard (Environment tab) — do not commit it to
+        # git. With SESSION_ID set, the bot skips the interactive pairing
+        # menu and logs straight in.
+    healthCheckPath: /health

@@ -1,0 +1,13 @@
+node_modules/
+api/keys.js
+session/
+temp_sessions/
+session-generator/temp_sessions/
+session_id.txt
+*.log
+data/*.json
+!data/.gitkeep
+bot_mode.json
+prefix_config.json
+bot_settings.json
+owner.json
