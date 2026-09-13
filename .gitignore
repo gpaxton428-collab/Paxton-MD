@@ -11,3 +11,4 @@ bot_mode.json
 prefix_config.json
 bot_settings.json
 owner.json
+.env
