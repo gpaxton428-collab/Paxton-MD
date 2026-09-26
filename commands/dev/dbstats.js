@@ -1,0 +1,2 @@
+import { dbStats } from '../../lib/database/index.js';
+export default { name: 'dbstats', alias: ['databaseinfo'], ownerOnly: true, description: 'Show Paxton-MD database health. Usage: .dbstats', async execute(sock, msg) { const s = dbStats(); await sock.sendMessage(msg.key.remoteJid, { text: `🗄️ *DATABASE*\n\n📁 Files: ${s.files}\n💾 Size: ${Math.round(s.bytes / 1024)} KB\n🗂️ Backups: ${s.backups}\n🟢 Status: READY` }, { quoted: msg }); } };

@@ -1,0 +1,58 @@
+{
+  "name": "paxton-md",
+  "version": "2.8.4",
+  "description": "Paxton MD V2 — WhatsApp multi-device bot built on current Baileys with native interactive buttons, persistent data, group moderation, AI, downloads and deployment tooling.",
+  "type": "module",
+  "main": "index.js",
+  "author": "Paxton",
+  "license": "MIT",
+  "private": false,
+  "homepage": "https://github.com/gpaxton428-collab/Paxton-MD#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/gpaxton428-collab/Paxton-MD.git"
+  },
+  "bugs": {
+    "url": "https://github.com/gpaxton428-collab/Paxton-MD/issues"
+  },
+  "keywords": [
+    "whatsapp",
+    "whatsapp-bot",
+    "baileys",
+    "paxton-md",
+    "chatbot",
+    "group-management",
+    "automation",
+    "nodejs"
+  ],
+  "scripts": {
+    "start": "node index.js",
+    "dev": "node --watch index.js",
+    "check": "node scripts/check-syntax.mjs",
+    "audit:imports": "node scripts/audit-imports.mjs",
+    "test": "node --test",
+    "verify": "npm run check && npm run audit:imports && npm test",
+    "session-generator": "node session-generator/index.js"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "dependencies": {
+    "@tobyg74/tiktok-api-dl": "^1.3.0",
+    "@whiskeysockets/baileys": "7.0.0-rc14",
+    "adm-zip": "^0.5.16",
+    "chalk": "^5.3.0",
+    "express": "^4.19.2",
+    "music-metadata": "^7.14.0",
+    "node-webpmux": "^3.1.1",
+    "qrcode": "^1.5.4",
+    "sharp": "^0.33.5",
+    "baileys_helper": "^1.0.6",
+    "@cacheable/node-cache": "^3.1.1"
+  },
+  "overrides": {
+    "libsignal": "^6.0.0"
+  },
+  "optionalDependencies": {
+  }
+}
