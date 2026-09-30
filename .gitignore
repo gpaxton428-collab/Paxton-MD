@@ -1,0 +1,16 @@
+node_modules/
+.env
+session/
+temp_sessions/
+session-generator/temp_sessions/
+session_id.txt
+*.log
+data/*.json
+!data/.gitkeep
+bot_mode.json
+prefix_config.json
+bot_settings.json
+owner.json
+whitelist.json
+blocked_users.json
+auto_join_log.json

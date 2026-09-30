@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>Paxton Tech — Pairing Web</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; }
+  html, body { height: 100%; }
+  body {
+    font-family: 'Inter', system-ui, sans-serif;
+    background: #050810;
+    color: #eaf2ff;
+    display: flex; min-height: 100vh; align-items: center; justify-content: center;
+    margin: 0; padding: 1.5rem;
+    position: relative; overflow-x: hidden;
+  }
+  body::before {
+    content: '';
+    position: fixed; inset: 0; z-index: 0;
+    background-image:
+      linear-gradient(rgba(70,160,255,0.05) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(70,160,255,0.05) 1px, transparent 1px);
+    background-size: 44px 44px;
+    animation: drift 20s linear infinite;
+  }
+  @keyframes drift { from { background-position: 0 0; } to { background-position: 44px 44px; } }
+  .glow-a, .glow-b {
+    position: fixed; border-radius: 50%; z-index: 0; pointer-events: none;
+    filter: blur(10px);
+  }
+  .glow-a { top: -15%; left: -10%; width: 520px; height: 520px; background: radial-gradient(circle, rgba(56,142,255,0.18), transparent 70%); animation: pulse 6s ease-in-out infinite; }
+  .glow-b { bottom: -20%; right: -10%; width: 480px; height: 480px; background: radial-gradient(circle, rgba(120,200,255,0.12), transparent 70%); animation: pulse 7s ease-in-out infinite 1s; }
+  @keyframes pulse { 0%,100% { opacity: .55; } 50% { opacity: 1; } }
+
+  .wrap { position: relative; z-index: 1; max-width: 460px; width: 100%; }
+
+  .badge-wrap { text-align: center; margin-bottom: 18px; }
+  .badge-wrap img {
+    width: 108px; height: 108px; border-radius: 50%;
+    box-shadow: 0 0 0 1px rgba(90,170,255,0.5), 0 0 40px rgba(56,142,255,0.35);
+    animation: float 6s ease-in-out infinite;
+  }
+  @keyframes float { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+
+  .brand-title {
+    text-align: center;
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 700;
+    font-size: 2rem;
+    letter-spacing: 0.02em;
+    margin-bottom: 4px;
+    background: linear-gradient(135deg, #ffffff, #9fd3ff);
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+    text-shadow: 0 0 30px rgba(70,160,255,0.25);
+  }
+  .brand-sub {
+    text-align: center;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.72rem;
+    letter-spacing: 0.15em;
+    color: #6f8bb3;
+    margin-bottom: 22px;
+  }
+
+  .feature-row {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;
+    margin-bottom: 22px;
+  }
+  .feature-chip {
+    display: flex; flex-direction: column; align-items: center; gap: 5px;
+    padding: 10px 4px;
+    background: rgba(20,30,48,0.6);
+    border: 1px solid rgba(90,150,220,0.18);
+    border-radius: 10px;
+    font-size: 0.62rem;
+    color: #8fa8c9;
+    letter-spacing: 0.03em;
+    text-align: center;
+  }
+  .feature-chip .fi { font-size: 1rem; }
+
+  .card {
+    background: rgba(10,15,26,0.85);
+    backdrop-filter: blur(14px);
+    border: 1px solid rgba(90,150,220,0.22);
+    border-radius: 18px;
+    padding: 2rem;
+    box-shadow: 0 0 50px rgba(35,95,180,0.15), 0 30px 70px rgba(0,0,0,0.5);
+  }
+
+  .tagline { text-align: center; color: #7d95b8; font-size: 0.85rem; margin-bottom: 1.4rem; }
+
+  input {
+    width: 100%; padding: .85rem 1rem; border-radius: 10px;
+    border: 1px solid rgba(90,150,220,0.25);
+    background: #0b1220; color: #eaf2ff; margin-bottom: .85rem; font-size: 1rem;
+  }
+  input:focus { outline: none; border-color: #4a9fd8; box-shadow: 0 0 0 3px rgba(74,159,216,0.15); }
+
+  button {
+    width: 100%; padding: .85rem; border-radius: 10px; border: none;
+    font-size: 0.95rem; font-weight: 600; cursor: pointer;
+    transition: transform .15s ease, box-shadow .2s ease, opacity .2s ease;
+    font-family: 'Inter', sans-serif;
+  }
+  button:active { transform: scale(0.98); }
+  button:disabled { opacity: 0.45; cursor: not-allowed; }
+
+  .btn-primary {
+    background: linear-gradient(135deg, #5cb8ff, #2f7fdb);
+    color: #04101f;
+  }
+  .btn-primary:hover { box-shadow: 0 8px 26px rgba(74,159,216,0.4); }
+
+  .btn-ghost {
+    background: rgba(255,255,255,0.04);
+    color: #cfe3ff;
+    border: 1px solid rgba(90,150,220,0.3);
+    margin-top: 0.6rem;
+  }
+
+  .code {
+    font-size: 2.1rem; letter-spacing: 5px; text-align: center;
+    background: #0b1220; padding: 1.1rem; border-radius: 12px; margin: 1rem 0;
+    border: 1px solid rgba(90,150,220,0.3); color: #9fd3ff; font-weight: 700;
+    font-family: 'JetBrains Mono', monospace;
+    animation: codeglow 2s ease-in-out infinite;
+  }
+  @keyframes codeglow {
+    0%,100% { box-shadow: 0 0 0 rgba(74,159,216,0); }
+    50% { box-shadow: 0 0 26px rgba(74,159,216,0.25); }
+  }
+
+  textarea {
+    width: 100%; height: 115px; background: #0b1220; color: #a8e6a8;
+    border: 1px solid rgba(90,150,220,0.25); border-radius: 10px; padding: .75rem;
+    font-size: .76rem; word-break: break-all; margin-bottom: .7rem;
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  .muted { color: #7d95b8; font-size: 0.84rem; line-height: 1.5; }
+  .step { display: none; }
+  .step.active { display: block; animation: fadeIn .35s ease; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+
+  .spinner {
+    width: 14px; height: 14px; border: 2px solid rgba(90,150,220,0.25);
+    border-top-color: #4a9fd8; border-radius: 50%; display: inline-block;
+    animation: spin .8s linear infinite; vertical-align: middle; margin-right: .4rem;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .repo-card {
+    margin-top: 1rem; padding: .9rem 1rem;
+    background: rgba(20,30,48,0.6);
+    border: 1px solid rgba(90,150,220,0.18);
+    border-radius: 10px;
+    font-size: 0.78rem;
+  }
+  .repo-card a { color: #7fc4ff; text-decoration: none; word-break: break-all; }
+  .repo-card a:hover { text-decoration: underline; }
+
+  .footer-tag {
+    text-align: center; margin-top: 1.4rem;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.68rem; letter-spacing: 0.15em; color: #4a6288;
+  }
+</style>
+</head>
+<body>
+<div class="glow-a"></div>
+<div class="glow-b"></div>
+
+<div class="wrap">
+  <div class="badge-wrap"><img src="assets/paxton-tech-badge.jpg" alt="Paxton Tech" /></div>
+  <div class="brand-title">PAXTON TECH</div>
+  <div class="brand-sub">PAIR · CONNECT · CONTROL</div>
+
+  <div class="feature-row">
+    <div class="feature-chip"><span class="fi">🔢</span>Pairing Code</div>
+    <div class="feature-chip"><span class="fi">📱</span>Multi Device</div>
+    <div class="feature-chip"><span class="fi">⚡</span>Fast &amp; Stable</div>
+    <div class="feature-chip"><span class="fi">🛡️</span>Secure</div>
+    <div class="feature-chip"><span class="fi">🌐</span>Web Based</div>
+    <div class="feature-chip"><span class="fi">🔓</span>Open Source</div>
+  </div>
+
+  <div class="card">
+    <div id="step-phone" class="step active">
+      <p class="tagline">Enter your WhatsApp number with country code, no + or spaces.</p>
+      <input id="phone" placeholder="27691234567" inputmode="numeric" />
+      <button id="btn-request" class="btn-primary">Get Pairing Code</button>
+      <p id="err-phone" class="muted" style="color:#ff8080"></p>
+    </div>
+
+    <div id="step-code" class="step">
+      <p class="muted">Open WhatsApp → Linked Devices → Link a Device, then enter this code:</p>
+      <div class="code" id="pair-code">----</div>
+      <p class="muted"><span class="spinner"></span>Waiting for you to enter it on your phone...</p>
+    </div>
+
+    <div id="step-done" class="step">
+      <p class="muted">✅ Linked! Copy this session string into your bot's <code>SESSION_ID</code>:</p>
+      <textarea id="session-out" readonly></textarea>
+      <button id="btn-copy" class="btn-primary">📋 Copy to clipboard</button>
+      <div class="repo-card" id="repo-card" style="display:none">
+        📦 <a id="repo-link" href="#" target="_blank" rel="noopener">Repo</a>
+      </div>
+      <p class="muted" style="margin-top:.8rem">Keep this private — it's full access to this WhatsApp account. Also sent to your own WhatsApp inbox.</p>
+    </div>
+
+    <div id="step-error" class="step">
+      <p style="color:#ff8080" id="err-msg"></p>
+      <button id="btn-retry" class="btn-ghost">Try again</button>
+    </div>
+  </div>
+
+  <div class="footer-tag">BUILT BY PAXTON TECH</div>
+</div>
+
+<script>
+function show(id) {
+  document.querySelectorAll('.step').forEach(el => el.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+document.getElementById('btn-request').addEventListener('click', async () => {
+  const phone = document.getElementById('phone').value.trim();
+  const errEl = document.getElementById('err-phone');
+  errEl.textContent = '';
+  if (!/^[0-9]{8,15}$/.test(phone)) {
+    errEl.textContent = 'Enter a valid number with country code, digits only.';
+    return;
+  }
+  document.getElementById('btn-request').disabled = true;
+  try {
+    const res = await fetch('/api/request-code', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ phone })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Request failed');
+    poll(data.sessionKey);
+  } catch (e) {
+    document.getElementById('err-msg').textContent = e.message;
+    show('step-error');
+  }
+});
+
+document.getElementById('btn-retry').addEventListener('click', () => {
+  document.getElementById('btn-request').disabled = false;
+  show('step-phone');
+});
+
+document.getElementById('btn-copy').addEventListener('click', () => {
+  const ta = document.getElementById('session-out');
+  ta.select();
+  document.execCommand('copy');
+  const btn = document.getElementById('btn-copy');
+  const original = btn.textContent;
+  btn.textContent = '✅ Copied!';
+  setTimeout(() => { btn.textContent = original; }, 1500);
+});
+
+function poll(sessionKey) {
+  let misses = 0;
+  const interval = setInterval(async () => {
+    try {
+      const res = await fetch('/api/status/' + sessionKey);
+      if (!res.ok) {
+        misses++;
+        if (misses > 3) {
+          clearInterval(interval);
+          let msg = 'Lost track of this session — it may have expired.';
+          try { const errData = await res.json(); if (errData.error) msg = errData.error; } catch {}
+          document.getElementById('err-msg').textContent = msg;
+          show('step-error');
+        }
+        return;
+      }
+      misses = 0;
+      const data = await res.json();
+      if (data.status === 'code' && data.code) {
+        document.getElementById('pair-code').textContent = data.code;
+        show('step-code');
+      } else if (data.status === 'connected') {
+        clearInterval(interval);
+        document.getElementById('session-out').value = data.sessionId;
+        if (data.repoUrl) {
+          document.getElementById('repo-link').href = data.repoUrl;
+          document.getElementById('repo-link').textContent = data.repoUrl;
+          document.getElementById('repo-card').style.display = 'block';
+        }
+        show('step-done');
+      } else if (data.status === 'error' || data.status === 'closed') {
+        clearInterval(interval);
+        document.getElementById('err-msg').textContent = data.error || 'Connection closed before linking finished.';
+        show('step-error');
+      }
+    } catch {
+      // transient network hiccup — keep polling
+    }
+  }, 2000);
+}
+</script>
+</body>
+</html>
