@@ -1,0 +1,17 @@
+node_modules/
+.env
+.env.*
+!.env.example
+session/
+temp_sessions/
+session_id.txt
+*.log
+data/*.json
+!data/.gitkeep
+bot_mode.json
+prefix_config.json
+bot_settings.json
+owner.json
+whitelist.json
+coverage/
+.DS_Store

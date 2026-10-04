@@ -1,0 +1,33 @@
+# Koyeb service definition (use with the Koyeb CLI or as a reference for the dashboard).
+#   koyeb service create paxton-md --app paxton-md --git github.com/<you>/<repo> --git-branch main \
+#     --git-builder docker --ports 3000:http --routes /:3000 --checks 3000:http:/health \
+#     --env PORT=3000 --env SESSION_ID=@paxton-session --env WOLVAREX_API_KEY=@wolvarex-key
+# Store secrets with `koyeb secrets create <name>` and reference them with @<name>.
+name: paxton-md
+type: WEB
+git:
+  branch: main
+  builder:
+    type: docker
+    dockerfile: Dockerfile
+ports:
+  - port: 3000
+    protocol: http
+routes:
+  - path: /
+    port: 3000
+health_checks:
+  - port: 3000
+    type: http
+    path: /health
+    grace_period: 45
+    interval: 30
+    timeout: 5
+instance_type: free   # or eco/small
+env:
+  - name: PORT
+    value: "3000"
+  - name: SESSION_ID
+    secret: paxton-session
+  - name: WOLVAREX_API_KEY
+    secret: wolvarex-key

@@ -1,0 +1,22 @@
+{
+  "name": "Paxton MD",
+  "description": "Multi-device WhatsApp bot by Paxton-Tech",
+  "repository": "https://github.com/gpaxton428-collab/Paxton-MD",
+  "keywords": ["whatsapp", "bot", "baileys", "paxton-md"],
+  "stack": "heroku-22",
+  "buildpacks": [
+    { "url": "heroku/nodejs" },
+    { "url": "https://github.com/jonathanong/heroku-buildpack-ffmpeg-latest.git" }
+  ],
+  "formation": {
+    "web": { "quantity": 1, "size": "basic" }
+  },
+  "env": {
+    "SESSION_ID": { "description": "Session string from the Paxton MD session generator (PAXTON-MD:...)", "required": true },
+    "BOT_NAME": { "description": "Bot display name", "value": "Paxton MD" },
+    "BOT_PREFIX": { "description": "Command prefix", "value": "." },
+    "OWNER_NAME": { "description": "Your name", "value": "Paxton" },
+    "WOLVAREX_API_KEY": { "description": "API key for API-backed commands (music, AI, fun...)", "required": false },
+    "NODE_ENV": { "value": "production" }
+  }
+}

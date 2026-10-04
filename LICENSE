@@ -1,0 +1,34 @@
+Paxton MD - Source-Available License
+
+Copyright (c) 2026 Paxton. All rights reserved.
+
+You may:
+  1. View and read the source code.
+  2. Run an unmodified copy of Paxton MD for your own personal use.
+  3. Modify your own copy for your own personal use, as long as you keep this
+     license, the copyright notice, and the "Paxton-Tech" credit intact.
+
+You may NOT, without written permission from the copyright holder:
+  1. Redistribute, re-upload, fork-and-publish, or re-host this software or any
+     substantial part of it, modified or not (including on GitHub, bot-hosting
+     sites, or Telegram/WhatsApp groups).
+  2. Sell, rent, or offer this software, or access to it, as a paid product
+     or service, or bundle it into one.
+  3. Remove or change the copyright notice, the Paxton-Tech credit, or the
+     license-key checks for hosted features.
+  4. Present this software or a derivative of it as your own work.
+  5. Use hosted Paxton services (the Paxton API) without a valid license key
+     issued to you, or share, resell or leak a license key.
+
+Third-party packages used by this project keep their own licenses.
+
+NO WARRANTY. The software is provided "as is", without warranty of any kind.
+The copyright holder is not liable for any claim, damages or other liability
+arising from its use.
+
+Versions published before this license was adopted (2.8.0 and earlier) were
+released under the MIT License. Copies obtained under that license remain
+under it; this license applies to version 2.9.0 and later.
+
+Permission requests: contact the copyright holder via the Paxton-Tech
+WhatsApp channel.
