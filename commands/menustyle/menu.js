@@ -52,9 +52,29 @@ export default {
       if (ctx.getGlobalSettings().menuImage ?? true) {
         try { await sock.sendMessage(chatId, { image: pickMenuImage(), caption: header, ...mention }, { quoted: msg }); }
         catch (err) { logger.warn('menu', `menu image skipped: ${safeErrorMessage(err)}`); }
+        // A short gap between the image and the (often large) text that
+        // follows avoids tripping WhatsApp's back-to-back message handling
+        // on some accounts, which can otherwise drop the second message.
+        await new Promise((r) => setTimeout(r, 400));
       }
       const card = getAdsCard(ctx.getGlobalSettings());
-      await sock.sendMessage(chatId, { text, ...mention, ...(card ? { contextInfo: card } : {}) }, { quoted: msg });
+      // The actual command listing — the part that matters most — used to
+      // have no error handling of its own: if this send failed for any
+      // reason (a brief network hiccup, or two messages fired back-to-back
+      // tripping a rate limit) the person got the image card and nothing
+      // else, with no error and no retry. Retry once, and if it still
+      // fails, say so instead of going silent.
+      try {
+        await sock.sendMessage(chatId, { text, ...mention, ...(card ? { contextInfo: card } : {}) }, { quoted: msg });
+      } catch (err) {
+        logger.warn('menu', `menu list send failed, retrying: ${safeErrorMessage(err)}`);
+        await new Promise((r) => setTimeout(r, 1200));
+        try {
+          await sock.sendMessage(chatId, { text, ...mention, ...(card ? { contextInfo: card } : {}) }, { quoted: msg });
+        } catch (err2) {
+          await reply(sock, msg, `❌ The menu list failed to send: ${safeErrorMessage(err2)}\nTry ${prefix}menu list for a shorter version.`);
+        }
+      }
     } finally {
       sock.sendPresenceUpdate('paused', chatId).catch(() => {});
     }
