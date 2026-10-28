@@ -1,7 +1,7 @@
-// .play <song>  ->  /music/ytmp3-search  ->  /music/ytmp3-download  ->  audio
-import { searchTracks, getTrackDownload, maxAudioSeconds } from '../../lib/api/music.js';
+// .play <song>  ->  youtube-sr search  ->  ytdl-core audio stream. Free,
+// no API key (see lib/api/youtubeFree.js for the trade-offs of that).
+import { searchTracks, getAudioBuffer, maxAudioSeconds } from '../../lib/api/youtubeFree.js';
 import { downloadBuffer, looksLikeAudio } from '../../lib/utils/http.js';
-import { AppError } from '../../lib/utils/errors.js';
 import { cleanFileName } from '../../lib/utils/format.js';
 import { logger } from '../../lib/utils/logger.js';
 import { react, reply, replyError, usage } from '../../lib/helpers/reply.js';
@@ -13,8 +13,7 @@ const inFlight = new Set();
 export default {
   name: 'play',
   alias: ['song', 'music'],
-  description: 'Search a song and send it as audio. Usage: .play <song name>  (or .play 2 after .songs)',
-  requires: ['WOLVAREX_API_KEY'],
+  description: 'Search a song on YouTube and send it as audio. Usage: .play <song name>  (or .play 2 after .songs)',
   async execute(sock, msg, args, prefix) {
     const chatId = msg.key.remoteJid;
     const sender = msg.key.participant || chatId;
@@ -48,25 +47,19 @@ export default {
       }
       if (!sentCard) await reply(sock, msg, info);
 
-      // 3) resolve + download the audio
-      const dl = await getTrackDownload(track.id);
-      const { buffer, contentType } = await downloadBuffer(dl.url, {
-        maxBytes: config.limits.maxAudioMb * 1024 * 1024,
-        timeoutMs: config.wolvarex.downloadTimeoutMs
-      });
-      if (!/^audio\//i.test(contentType) && !looksLikeAudio(buffer)) {
-        logger.warn('play', `download was not audio (content-type: ${contentType || 'none'}, ${buffer.length} bytes)`);
-        throw new AppError('Downloaded file is not audio', { kind: 'bad_response' });
+      // 3) download the audio directly (no intermediate URL to fetch — ytdl streams it straight from YouTube)
+      const buffer = await getAudioBuffer(track.id, { maxBytes: config.limits.maxAudioMb * 1024 * 1024 });
+      if (!looksLikeAudio(buffer)) {
+        logger.warn('play', `download did not look like audio (${buffer.length} bytes)`);
       }
 
       // 4) send
-      const isM4a = /mp4|m4a|aac/i.test(contentType) || buffer.slice(4, 8).toString() === 'ftyp';
-      const fileName = `${cleanFileName(track.title, 'audio')}.${isM4a ? 'm4a' : 'mp3'}`;
+      const fileName = `${cleanFileName(track.title, 'audio')}.m4a`;
       try {
-        await sock.sendMessage(chatId, { audio: buffer, mimetype: isM4a ? 'audio/mp4' : 'audio/mpeg', fileName, ptt: false }, { quoted: msg });
+        await sock.sendMessage(chatId, { audio: buffer, mimetype: 'audio/mp4', fileName, ptt: false }, { quoted: msg });
       } catch (sendErr) {
         logger.warn('play', `audio send failed, retrying as document: ${sendErr.message}`);
-        await sock.sendMessage(chatId, { document: buffer, mimetype: isM4a ? 'audio/mp4' : 'audio/mpeg', fileName }, { quoted: msg });
+        await sock.sendMessage(chatId, { document: buffer, mimetype: 'audio/mp4', fileName }, { quoted: msg });
       }
       await react(sock, msg, '✅');
     } catch (err) {

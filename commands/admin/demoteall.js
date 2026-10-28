@@ -1,4 +1,4 @@
-import { getGroupMetadata, isSenderAdmin, isBotAdmin, replyText } from '../../lib/groupHelper.js';
+import { getGroupMetadata, isSenderAdmin, isBotAdmin, isSelfParticipant, isCreatorParticipant, jidMatchesParticipant, replyText } from '../../lib/groupHelper.js';
 
 export default {
   name: 'demoteall',
@@ -14,9 +14,12 @@ export default {
     }
     const metadata = await getGroupMetadata(sock, chatId);
     if (!metadata) return replyText(sock, msg, '❌ Could not load group info.');
-    const botJid = sock.user?.id?.split(':')[0] + '@s.whatsapp.net';
+    // Same-domain comparisons (see kickall.js) — a bare-number string
+    // compare breaks in @lid groups since the LID number and the phone
+    // number for the same account are unrelated strings.
     const targets = metadata.participants
-      .filter((p) => (p.admin === 'admin' || p.admin === 'superadmin') && p.id.split('@')[0] !== sender.split('@')[0] && p.id.split('@')[0] !== botJid.split('@')[0])
+      .filter((p) => (p.admin === 'admin' || p.admin === 'superadmin'))
+      .filter((p) => !jidMatchesParticipant(p, sender) && !isSelfParticipant(sock, p) && !isCreatorParticipant(metadata, p))
       .map((p) => p.id);
     if (!targets.length) return replyText(sock, msg, 'ℹ️ No other admins to demote.');
     await replyText(sock, msg, `🚨 Demoting ${targets.length} admin(s)...`);

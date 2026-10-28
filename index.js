@@ -368,6 +368,18 @@ function removePrefixFromList(oldPrefix) {
     return { success: true, prefixList };
 }
 
+// Builds a box-drawing frame sized to its widest line, so it never
+// misaligns when the version string, owner number or host label changes
+// length (the old box used a fixed width and broke on anything but the
+// exact values it was written for).
+function renderStatusBox(lines) {
+    const width = Math.max(...lines.map((l) => l.length)) + 2;
+    const top = `╔${'═'.repeat(width)}╗`;
+    const bottom = `╚${'═'.repeat(width)}╝`;
+    const body = lines.map((l) => l === '' ? `╠${'═'.repeat(width)}╣` : `║ ${l.padEnd(width - 1)}║`).join('\n');
+    return `\n${top}\n${body}\n${bottom}\n`;
+}
+
 function updateTerminalHeader() {
     const currentPrefix = getCurrentPrefix();
     const prefixDisplay = isPrefixless ? 'none (prefixless)' : `"${currentPrefix}"`;
@@ -799,7 +811,7 @@ class AutoLinkSystem {
         try {
             const currentPrefix = getCurrentPrefix();
             const prefixDisplay = isPrefixless ? 'none (prefixless)' : `"${currentPrefix}"`;
-            await sock.sendMessage(senderJid, { text: `✅ *Connected!*\n\n${isFirstUser ? 'First-time setup complete!' : 'New owner linked!'}\nNumber: +${cleaned.cleanNumber}\nDevice: ${cleaned.isLid ? 'Linked Device' : 'Regular Device'}\nPrefix: ${prefixDisplay}\nStatus: Linked successfully` });
+            await sock.sendMessage(senderJid, { text: `✅ *${BOT_NAME} connected!*\n\n${isFirstUser ? 'First-time setup complete.' : 'New owner linked.'}\nNumber: +${cleaned.cleanNumber}\nDevice: ${cleaned.isLid ? 'Linked Device' : 'Regular Device'}\nPrefix: ${prefixDisplay}\nHost: ${config.platform}\nVersion: v${VERSION}\n\nSend ${isPrefixless ? '' : currentPrefix}menu to see what I can do.` });
         } catch {}
     }
     async sendDeviceLinkedMessage(sock, senderJid, cleaned) {
@@ -1188,8 +1200,23 @@ async function startBot(loginMode = 'pair', loginData = null) {
         let state, saveCreds;
         try { const authState = await useMultiFileAuthState(SESSION_DIR); state = authState.state; saveCreds = authState.saveCreds; }
         catch { cleanSession(); const freshAuth = await useMultiFileAuthState(SESSION_DIR); state = freshAuth.state; saveCreds = freshAuth.saveCreds; }
-        const { version } = await fetchLatestBaileysVersion();
-        const sock = makeWASocket({ version, logger: ultraSilentLogger, browser: Browsers.ubuntu('Chrome'), printQRInTerminal: false, auth: { creds: state.creds, keys: makeCacheableSignalKeyStore(state.keys, ultraSilentLogger) }, markOnlineOnConnect: true, generateHighQualityLinkPreview: true, connectTimeoutMs: 120000, keepAliveIntervalMs: 60000, emitOwnEvents: true, mobile: false, getMessage: async (key) => store?.getMessage(key.remoteJid, key.id) || null, defaultQueryTimeoutMs: 20000 });
+        // Falls back to the library's own bundled WA version if the version-check
+        // request fails (flaky panel network, etc.) — a stale-but-working version
+        // beats a crashed startup.
+        const { version } = await fetchLatestBaileysVersion().catch((err) => {
+            UltraCleanLogger.warning(`⚠️ Could not fetch latest WA version (${err.message}) — using the bundled default.`);
+            return { version: undefined };
+        });
+        const sock = makeWASocket({ version, logger: ultraSilentLogger, browser: Browsers.ubuntu('Chrome'), printQRInTerminal: false, auth: { creds: state.creds, keys: makeCacheableSignalKeyStore(state.keys, ultraSilentLogger) }, markOnlineOnConnect: true, generateHighQualityLinkPreview: true, connectTimeoutMs: 120000, keepAliveIntervalMs: 60000, emitOwnEvents: true, mobile: false, // Baileys calls this during retry-receipt handling and expects back just
+// the inner message *content* (WAMessageContent — what a WAMessage's
+// own `.message` field holds), not the whole stored wrapper object
+// (which also carries `.key`, `.messageTimestamp`, `.pushName`, our
+// own `.timestamp`, etc). Returning the wrapper instead of `.message`
+// silently fed Baileys the wrong shape, which can break re-encrypting
+// a message for a recipient whose device failed to decrypt it the
+// first time. `undefined` (not null) is what the typed contract wants
+// for "not found".
+getMessage: async (key) => store?.getMessage(key.remoteJid, key.id)?.message || undefined, defaultQueryTimeoutMs: 20000 });
         wrapSendMessageWithFont(sock, getGlobalSettings);
         wrapSendMessageWithRedaction(sock);
         SOCKET_INSTANCE = sock; connectionAttempts = 0; isWaitingForPairingCode = false;
@@ -1225,7 +1252,7 @@ async function startBot(loginMode = 'pair', loginData = null) {
                 UltraCleanLogger.info('🔄 Establishing connection...');
                 if (loginMode === 'pair' && loginData && !state.creds.registered && !isWaitingForPairingCode && !pairingCodeRequestInFlight && !pairingCodeRequestTimer) {
                     isWaitingForPairingCode = true;
-                    console.log("\n========================================\n🔑 PAIRING CODE - COPY const requestPairingCode = async ENTER ON WHATSAPP\n========================================\n");
+                    console.log("\n========================================\n🔑 REQUESTING PAIRING CODE...\n========================================\n");
                     const requestPairingCode = async (attempt = 1) => {
                         if (pairingCodeRequestInFlight || isConnected || state.creds.registered) return;
                         pairingCodeRequestInFlight = true;
@@ -1406,7 +1433,14 @@ async function handleSuccessfulConnection(sock, loginMode, loginData) {
     const currentPrefix = getCurrentPrefix();
     const prefixDisplay = isPrefixless ? 'none (prefixless)' : `"${currentPrefix}"`;
     updateTerminalHeader();
-    console.log(chalk.greenBright(`\n╔══════════════════════════════════════╗\n║    ⚡ PAXTON MD ONLINE v${VERSION}           ║\n╠══════════════════════════════════════╣\n║  ✅ Connected!\n║  👑 Owner  : +${ownerInfo.ownerNumber}\n║  💬 Prefix : ${prefixDisplay}\n╚══════════════════════════════════════╝\n`));
+    console.log(chalk.greenBright(renderStatusBox([
+        `⚡ ${BOT_NAME} ONLINE · v${VERSION}`,
+        '',
+        '✅ Connected',
+        `👑 Owner   : +${ownerInfo.ownerNumber}`,
+        `💬 Prefix  : ${prefixDisplay}`,
+        `☁️  Host    : ${config.platform}`,
+    ])));
     const cleaned = jidManager.cleanJid(OWNER_JID);
     if (ultimateFixSystem.isFixNeeded(OWNER_JID)) {
         setTimeout(async () => { await ultimateFixSystem.applyUltimateFix(sock, OWNER_JID, cleaned, isFirstConnection); }, 1200);
@@ -1417,9 +1451,22 @@ async function handleSuccessfulConnection(sock, loginMode, loginData) {
     // was sending two separate "we're online" messages back to back.)
 }
 
+// statusCode -> a short, human reason, so the logs say *why* the bot
+// dropped instead of just quietly retrying.
+const DISCONNECT_REASONS = {
+    401: 'Session logged out on the phone — a fresh session is required.',
+    403: 'Session rejected by WhatsApp — a fresh session is required.',
+    419: 'Session expired — a fresh session is required.',
+    409: 'Another instance of this session connected elsewhere — backing off.',
+    428: 'Connection closed — reconnecting.',
+    440: 'Replaced by another device connecting with the same session.',
+};
+
 async function handleConnectionCloseSilently(lastDisconnect, loginMode, phoneNumber) {
     if (reconnectScheduled) return;
     const statusCode = lastDisconnect?.error?.output?.statusCode;
+    const reason = DISCONNECT_REASONS[statusCode] || (lastDisconnect?.error?.message ? lastDisconnect.error.message : 'Connection dropped — reconnecting.');
+    UltraCleanLogger.warning(`🔌 Disconnected (${statusCode ?? 'unknown'}): ${reason}`);
     connectionAttempts++;
     if (statusCode === 409) { reconnectScheduled = true; setTimeout(async () => { await startBot(loginMode, phoneNumber); }, 25000); return; }
     if (statusCode === 401 || statusCode === 403 || statusCode === 419) cleanSession();

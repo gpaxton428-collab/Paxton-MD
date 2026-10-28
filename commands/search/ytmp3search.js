@@ -1,4 +1,4 @@
-import { searchTracks } from '../../lib/api/music.js';
+import { searchTracks } from '../../lib/api/youtubeFree.js';
 import { reply, replyError, usage } from '../../lib/helpers/reply.js';
 import { saveResults } from '../../lib/helpers/musicSession.js';
 
@@ -6,7 +6,6 @@ export default {
   name: 'songs',
   alias: ['ytmp3search', 'songsearch'],
   description: 'List song results, then pick one with .play <number>. Usage: .songs <query>',
-  requires: ['WOLVAREX_API_KEY'],
   async execute(sock, msg, args, prefix) {
     const chatId = msg.key.remoteJid;
     const query = args.join(' ');

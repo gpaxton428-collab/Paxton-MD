@@ -1,5 +1,4 @@
 import { detectImageBackends } from '../../lib/helpers/imageProcessor.js';
-import { isConfigured } from '../../lib/api/wolvarex.js';
 import { config } from '../../config/index.js';
 
 export default {
@@ -18,7 +17,6 @@ export default {
       `⚠️ Failed to load: ${report.failed.length}${report.failed.length ? `\n${report.failed.slice(0, 8).map((f) => `  • ${f.file}: ${f.error}`).join('\n')}` : ''}`,
       `♻️ Duplicates skipped: ${report.duplicates.length}${report.duplicates.length ? `\n${report.duplicates.slice(0, 5).map((d) => `  • ${d.name}: ${d.skipped} (kept ${d.kept})`).join('\n')}` : ''}`,
       `🔀 Alias conflicts: ${report.aliasConflicts.length}${report.aliasConflicts.length ? `\n${report.aliasConflicts.slice(0, 5).map((d) => `  • ${d.alias} → ${d.command}: ${d.reason}`).join('\n')}` : ''}`,
-      `🔑 Wolvarex key: ${isConfigured() ? '✅ configured' : '❌ missing'}`,
       `🖼️ Image backends: ${Object.entries(backends).map(([k, v]) => `${v ? '✅' : '❌'} ${k}`).join(' · ')}`,
       `🩺 WhatsApp: ${ctx.isWhatsAppConnected?.() ? 'connected 🟢' : 'disconnected 🔴'}`,
       `🪵 Last error: ${last ? `${last.time}${last.scope ? ` [${last.scope}]` : ''} ${String(last.message ?? '').slice(0, 160)}` : 'none since startup'}`

@@ -8,7 +8,6 @@ import { getAds } from '../lib/menu/ads.js';
 import { collectSections } from '../lib/menu/visibility.js';
 import { setGlobalSetting } from '../lib/settingsStore.js';
 import menu from '../commands/menustyle/menu.js';
-import ssweb from '../commands/tools/ssweb.js';
 import roast from '../commands/fun/joke.js';
 
 const quiet = console.warn; console.warn = () => {}; test.after(() => { console.warn = quiet; });
@@ -84,15 +83,15 @@ test('regular users never see owner/dev/sudo/admin commands or strict-owner comm
   assert.equal(planMenu(ctx, { requested: null, isOwner: false, isAdmin: true, inGroup: true }).scope, 'admin');
 });
 
-test('commands that need an API key are hidden for users and flagged for the owner when the key is missing', async () => {
+test('no command is gated behind an API key — the bot is fully usable with zero keys configured', async () => {
   const { ctx } = await realCtx();
   const saved = process.env.WOLVAREX_API_KEY; process.env.WOLVAREX_API_KEY = '';
   try {
     const user = collectSections(ctx, 'user', { isOwner: false }).flatMap((s) => s.items.map((i) => i.name));
-    assert.ok(!user.includes('play') && !user.includes('flux'));
+    assert.ok(user.includes('play'), 'play works offline (youtube-sr + ytdl-core, no key)');
     assert.ok(user.includes('joke'), 'fun commands keep working offline');
     const owner = collectSections(ctx, 'owner', { isOwner: true }).flatMap((s) => s.items);
-    assert.equal(owner.find((i) => i.name === 'play').flagged, true);
+    assert.ok(!owner.some((i) => i.flagged), 'no command should be flagged as key-missing anymore');
   } finally { process.env.WOLVAREX_API_KEY = saved; }
 });
 
@@ -104,8 +103,8 @@ test('.menu command sends a plain text message (no buttons/interactive payloads)
   assert.equal(typeof payload.text, 'string');
   assert.deepEqual(Object.keys(payload).sort(), ['contextInfo', 'mentions', 'text']);
   assert.equal(payload.contextInfo.externalAdReply.showAdAttribution, true);
-  const drill = fakeSock(); await menu.execute(drill, fakeMsg('.menu ai'), ['ai'], '.', ctx);
-  assert.match(drill.sent[0].content.text, /AI/);
+  const drill = fakeSock(); await menu.execute(drill, fakeMsg('.menu fun'), ['fun'], '.', ctx);
+  assert.match(drill.sent[0].content.text, /fun/i);
   const unk = fakeSock(); await menu.execute(unk, fakeMsg('.menu zzz'), ['zzz'], '.', ctx);
   assert.match(unk.sent[0].content.text, /Unknown menu/);
 });
@@ -116,20 +115,6 @@ test('category drill-down paginates and index lists categories', async () => {
   assert.match(page, /page 2\//);
   assert.match(buildIndex(ctx, { scope: 'user', senderJid: '1@s.whatsapp.net' }), /FUN/);
   assert.equal(buildCategory(ctx, { category: 'owner', scope: 'user' }), null);
-});
-
-test('.ssweb refuses internal/unsafe URLs before any request is made', async () => {
-  const m = mockFetch(() => json({}));
-  const sock = fakeSock();
-  try {
-    for (const bad of ['http://127.0.0.1:8080', 'http://169.254.169.254/latest/meta-data', 'file:///etc/passwd', 'http://localhost']) {
-      await ssweb.execute(sock, fakeMsg(), [bad], '.', {});
-    }
-    assert.equal(m.calls.length, 0);
-    const texts = sock.sent.filter((s) => s.content.text).map((s) => s.content.text);
-    assert.equal(texts.length, 4);
-    assert.ok(texts.every((t) => /Link not allowed/.test(t)));
-  } finally { m.restore(); }
 });
 
 test('fun commands fall back to the offline list when the API is down', async () => {

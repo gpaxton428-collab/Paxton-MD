@@ -1,5 +1,5 @@
 import { safeErrorMessage } from '../../lib/utils/errors.js';
-import { getTargetJid, isSenderAdmin, isBotAdmin, replyText } from '../../lib/groupHelper.js';
+import { getTargetJid, isSenderAdmin, isBotAdmin, isSelfParticipant, isCreatorParticipant, getGroupMetadata, jidMatchesParticipant, replyText } from '../../lib/groupHelper.js';
 
 export default {
   name: 'kick',
@@ -13,6 +13,10 @@ export default {
     if (!(await isBotAdmin(sock, chatId))) return replyText(sock, msg, '❌ I need to be an admin to do that.');
     const target = getTargetJid(msg, args);
     if (!target) return replyText(sock, msg, '❌ Reply to or mention the member you want to remove.');
+    const metadata = await getGroupMetadata(sock, chatId);
+    const targetParticipant = metadata?.participants.find((p) => jidMatchesParticipant(p, target));
+    if (targetParticipant && isSelfParticipant(sock, targetParticipant)) return replyText(sock, msg, "❌ I can't remove myself.");
+    if (targetParticipant && isCreatorParticipant(metadata, targetParticipant)) return replyText(sock, msg, "❌ I can't remove the group creator.");
     try {
       await sock.groupParticipantsUpdate(chatId, [target], 'remove');
       const displayNumber = ctx?.resolveDisplayNumber ? await ctx.resolveDisplayNumber(target, chatId) : target.split('@')[0];

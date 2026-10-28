@@ -4,6 +4,7 @@ node_modules/
 !.env.example
 session/
 temp_sessions/
+session-generator/temp_sessions/
 session_id.txt
 *.log
 data/*.json

@@ -1,5 +1,6 @@
 import { safeErrorMessage } from '../../lib/utils/errors.js';
 import fs from 'fs';
+import { writeJsonSync } from '../../lib/utils/jsonStore.js';
 
 const NAME_FILE = './data/botname.json';
 
@@ -13,7 +14,7 @@ export default {
     if (!newName) return sock.sendMessage(chatId, { text: '❌ Usage: .setbotname <name>' }, { quoted: msg });
     try {
       if (!fs.existsSync('./data')) fs.mkdirSync('./data', { recursive: true });
-      fs.writeFileSync(NAME_FILE, JSON.stringify({ name: newName, setAt: new Date().toISOString() }, null, 2));
+      writeJsonSync(NAME_FILE, { name: newName, setAt: new Date().toISOString() });
       ctx.setBotName(newName); // updates it live — no restart needed, shows up in .menu right away
       try { await sock.updateProfileName(newName); } catch {}
       await sock.sendMessage(chatId, { text: `✅ Bot name changed to *${newName}* — updated on WhatsApp and in the menu.` }, { quoted: msg });

@@ -8,6 +8,7 @@ npm-debug.log*
 !.env.example
 session
 temp_sessions
+session-generator/temp_sessions
 session_id.txt
 data/*.json
 owner.json

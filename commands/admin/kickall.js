@@ -1,4 +1,4 @@
-import { getGroupMetadata, isSenderAdmin, isBotAdmin, replyText } from '../../lib/groupHelper.js';
+import { getGroupMetadata, isSenderAdmin, isBotAdmin, isSelfParticipant, isCreatorParticipant, replyText } from '../../lib/groupHelper.js';
 
 export default {
   name: 'kickall',
@@ -16,11 +16,14 @@ export default {
     const metadata = await getGroupMetadata(sock, chatId);
     if (!metadata) return replyText(sock, msg, '❌ Could not load group info.');
 
-    const botJid = sock.user?.id?.split(':')[0] + '@s.whatsapp.net';
+    // isSelfParticipant/isCreatorParticipant compare same-domain ids (lid-to-lid,
+    // phone-to-phone) instead of just the number portion — in a @lid group the
+    // bot's own LID number bears no resemblance to its phone number, so the old
+    // "strip to bare number and compare" check could fail to exclude the bot.
     const targets = metadata.participants
       .filter((p) => p.admin !== 'admin' && p.admin !== 'superadmin')
-      .map((p) => p.id)
-      .filter((id) => id.split('@')[0] !== botJid.split('@')[0]);
+      .filter((p) => !isSelfParticipant(sock, p) && !isCreatorParticipant(metadata, p))
+      .map((p) => p.id);
 
     if (!targets.length) return replyText(sock, msg, 'ℹ️ No non-admin members to remove.');
 

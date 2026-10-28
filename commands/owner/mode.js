@@ -1,5 +1,6 @@
 import { safeErrorMessage } from '../../lib/utils/errors.js';
 import fs from 'fs';
+import { writeJsonSync } from '../../lib/utils/jsonStore.js';
 
 const MODES = ['public', 'private', 'silent', 'group-only', 'maintenance'];
 const BOT_MODE_FILE = './bot_mode.json';
@@ -15,7 +16,7 @@ export default {
       return sock.sendMessage(chatId, { text: `❌ Usage: .mode <${MODES.join('|')}>` }, { quoted: msg });
     }
     try {
-      fs.writeFileSync(BOT_MODE_FILE, JSON.stringify({ mode: choice, setAt: new Date().toISOString() }, null, 2));
+      writeJsonSync(BOT_MODE_FILE, { mode: choice, setAt: new Date().toISOString() });
       ctx.setBotMode(choice); // apply immediately — no restart needed
       await sock.sendMessage(chatId, { text: `✅ Bot mode set to *${choice}*.` }, { quoted: msg });
     } catch (error) {

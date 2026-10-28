@@ -1,6 +1,7 @@
 import { safeErrorMessage } from '../../lib/utils/errors.js';
 import fs from 'fs';
 import path from 'path';
+import { writeJsonSync } from '../../lib/utils/jsonStore.js';
 
 export default {
   name: 'clearallwarnings',
@@ -16,7 +17,7 @@ export default {
           all[jid].warnings = {};
           all[jid].actionWarnings = {};
         }
-        fs.writeFileSync(file, JSON.stringify(all, null, 2));
+        writeJsonSync(file, all);
       }
       await sock.sendMessage(chatId, { text: '✅ All warnings cleared across every group.' }, { quoted: msg });
     } catch (error) {

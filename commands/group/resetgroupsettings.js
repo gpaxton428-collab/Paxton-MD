@@ -1,6 +1,7 @@
 import { safeErrorMessage } from '../../lib/utils/errors.js';
 import fs from 'fs';
 import path from 'path';
+import { writeJsonSync } from '../../lib/utils/jsonStore.js';
 import { isSenderAdmin, replyText } from '../../lib/groupHelper.js';
 
 export default {
@@ -16,7 +17,7 @@ export default {
       if (fs.existsSync(file)) {
         const all = JSON.parse(fs.readFileSync(file, 'utf8'));
         delete all[chatId];
-        fs.writeFileSync(file, JSON.stringify(all, null, 2));
+        writeJsonSync(file, all);
       }
       await replyText(sock, msg, '✅ This group\'s settings were reset to defaults.');
     } catch (error) {

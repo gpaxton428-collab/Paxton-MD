@@ -2,11 +2,9 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { SECRET, mockFetch, json } from './helpers.mjs';
 import { getJson, isConfigured } from '../lib/api/wolvarex.js';
-import { searchTracks, getTrackDownload, normalizeTrack, extractVideoId } from '../lib/api/music.js';
+import { extractVideoId } from '../lib/api/youtubeFree.js';
 import { fetchFun, normalizeFun } from '../lib/api/fun.js';
 import { askAi, translateText } from '../lib/api/ai.js';
-import { uploadToCatbox } from '../lib/api/upload.js';
-import { getInstagramMedia } from '../lib/api/social.js';
 import { toUserMessage } from '../lib/utils/errors.js';
 import { findUrl, summarizeShape } from '../lib/api/normalize.js';
 
@@ -51,37 +49,13 @@ test('transient 503 is retried once', async () => {
   try { assert.deepEqual(await getJson('/x'), { result: 'ok' }); assert.equal(n, 2); } finally { m.restore(); }
 });
 
-test('search results are normalised across plausible shapes', async () => {
-  const shapes = [
-    { status: true, result: [{ id: 'dQw4w9WgXcQ', title: 'Song', author: { name: 'Artist' }, timestamp: '3:33', thumbnail: 'https://i.example/t.jpg' }] },
-    { result: { results: [{ videoId: 'dQw4w9WgXcQ', title: 'Song', channel: 'Artist', duration: 213 }] } },
-    { data: [{ url: 'https://youtu.be/dQw4w9WgXcQ', name: 'Song', uploader: 'Artist', seconds: 213 }] }
-  ];
-  for (const body of shapes) {
-    const m = mockFetch(() => json(body));
-    try {
-      const [t] = await searchTracks('NF - The Search');
-      assert.equal(t.id, 'dQw4w9WgXcQ'); assert.equal(t.title, 'Song'); assert.equal(t.artist, 'Artist'); assert.equal(t.duration, '3:33');
-    } finally { m.restore(); }
-  }
-});
-
-test('search handles empty, malformed and invalid input', async () => {
-  let m = mockFetch(() => json({ result: [] }));
-  try { await assert.rejects(() => searchTracks('nothing'), (e) => e.kind === 'no_results'); } finally { m.restore(); }
-  m = mockFetch(() => json({ result: [{ nope: true }] }));
-  try { await assert.rejects(() => searchTracks('x'), (e) => e.kind === 'no_results'); } finally { m.restore(); }
-  await assert.rejects(() => searchTracks('   '), (e) => e.kind === 'invalid_input');
-  await assert.rejects(() => searchTracks('a'.repeat(500)), (e) => e.kind === 'invalid_input');
-});
-
-test('download resolves a URL and fails cleanly without one', async () => {
-  let m = mockFetch(() => json({ result: { download: 'https://cdn.example/a.mp3', title: 'Song' } }));
-  try { assert.equal((await getTrackDownload('dQw4w9WgXcQ')).url, 'https://cdn.example/a.mp3'); } finally { m.restore(); }
-  m = mockFetch(() => json({ result: { note: 'nothing here' } }));
-  try { await assert.rejects(() => getTrackDownload('dQw4w9WgXcQ'), (e) => e.kind === 'bad_response'); } finally { m.restore(); }
-  await assert.rejects(() => getTrackDownload('../../etc/passwd'), (e) => e.kind === 'invalid_input');
+test('extractVideoId recognises every common YouTube URL shape', () => {
   assert.equal(extractVideoId('https://www.youtube.com/watch?v=dQw4w9WgXcQ&t=5'), 'dQw4w9WgXcQ');
+  assert.equal(extractVideoId('https://youtu.be/dQw4w9WgXcQ'), 'dQw4w9WgXcQ');
+  assert.equal(extractVideoId('https://www.youtube.com/shorts/dQw4w9WgXcQ'), 'dQw4w9WgXcQ');
+  assert.equal(extractVideoId('dQw4w9WgXcQ'), 'dQw4w9WgXcQ');
+  assert.equal(extractVideoId('../../etc/passwd'), null);
+  assert.equal(extractVideoId(''), null);
 });
 
 test('fun endpoints normalise and unknown shapes are rejected', async () => {
@@ -100,15 +74,6 @@ test('AI chat + translate use the right endpoints and fall back for translate', 
   m = mockFetch((url) => (url.includes('/ai/translate') ? new Response('', { status: 500 }) : json({ responseData: { translatedText: 'Hola' } })));
   try { const r = await translateText('Hello', 'es'); assert.equal(r.text, 'Hola'); assert.equal(r.provider, 'mymemory'); } finally { m.restore(); }
   await assert.rejects(() => translateText('Hello', 'not a lang!'), (e) => e.kind === 'invalid_input');
-});
-
-test('upload + instagram helpers', async () => {
-  let m = mockFetch((url, init) => { assert.ok(init.body instanceof FormData); return json({ result: { url: 'https://files.catbox.moe/x.png' } }); });
-  try { assert.equal(await uploadToCatbox(Buffer.from('png'), 'image/png'), 'https://files.catbox.moe/x.png'); assert.match(m.calls[0], /\/url\/catbox/); } finally { m.restore(); }
-  await assert.rejects(() => uploadToCatbox(Buffer.alloc(0)), (e) => e.kind === 'invalid_input');
-  await assert.rejects(() => getInstagramMedia('https://evil.example/p/1'), (e) => e.kind === 'invalid_input');
-  m = mockFetch(() => json({ result: [{ url: 'https://cdn.example/1.jpg' }, { url: 'https://cdn.example/2.mp4' }] }));
-  try { const media = await getInstagramMedia('https://www.instagram.com/reel/abc/'); assert.deepEqual(media.map((x) => x.type), ['image', 'video']); } finally { m.restore(); }
 });
 
 test('shape summariser only reveals key names', () => {

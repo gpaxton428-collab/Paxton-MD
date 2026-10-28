@@ -31,7 +31,7 @@ npm install
 ```
 
 ## 5. Set your session
-Get a session string from the Paxton MD session generator website (or send `.pair` to the bot), then
+Get a session string from the session generator (see main README), then
 either:
 - **If the panel has an environment variables / "Startup Variables"
   section**: add `SESSION_ID` = `PAXTON-MD:...`

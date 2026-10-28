@@ -9,8 +9,6 @@
 # Changelog
 
 ## 2.9.0
-- License changed from MIT to a source-available license (see `LICENSE`).
-- Added `lib/remote.js` and `.pro` for hosted features served from your own license-key API.
 - Menu header image now rotates through bundled pictures in `assets/menu/` (on by default).
 - Session generator page redesigned: responsive layout with an image showcase, deploy guide tab.
 - Heroku: `Procfile` runs a web dyno, `app.json` added (Node.js + FFmpeg buildpacks).

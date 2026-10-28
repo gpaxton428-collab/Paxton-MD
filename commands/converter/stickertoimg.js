@@ -1,3 +1,8 @@
-import { createConverterCommand } from '../../lib/helpers/converterCommand.js';
+import { createLocalConverterCommand } from '../../lib/helpers/localConverterCommand.js';
 
-export default createConverterCommand({ name: 'stickertoimg', path: '/converter/sticker-to-img', input: 'sticker', description: 'Convert a sticker URL to a still image. Usage: .stickertoimg <sticker url>', send: (image) => ({ image }) });
+export default createLocalConverterCommand({
+  name: 'stickertoimg', alias: ['stickertoimage', 'toimg'], input: 'sticker', outExt: 'png',
+  description: 'Convert a replied sticker to a still image (local, no API key). Usage: reply to a sticker with .stickertoimg',
+  ffmpegArgs: ['-frames:v', '1'],
+  send: (buf) => ({ image: buf }),
+});

@@ -51,7 +51,7 @@ cp .env.example .env      # then edit .env
 npm start
 ```
 
-First start: pick pairing-code login, or put a `PAXTON-MD:...` string in `SESSION_ID` (get one from the Paxton MD session generator website, or send `.pair` to the bot) to log in automatically.
+First start: pick pairing-code login, or put a `PAXTON-MD:...` string in `SESSION_ID` (see `session-generator/`) to log in automatically.
 
 ## Configuration
 
@@ -193,4 +193,4 @@ Any host that runs `npm install && npm start` works: set the environment variabl
 
 ## Credits & licence
 
-Source-available, all rights reserved. See `LICENSE` (versions 2.8.0 and earlier were MIT). Built on Baileys.
+MIT — see `LICENSE`. Built on Baileys.

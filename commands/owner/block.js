@@ -1,4 +1,5 @@
 import fs from 'fs';
+import { writeJsonSync } from '../../lib/utils/jsonStore.js';
 import { getTargetJid } from '../../lib/groupHelper.js';
 
 const BLOCKED_FILE = './blocked_users.json';
@@ -14,7 +15,7 @@ export default {
     let list = [];
     try { if (fs.existsSync(BLOCKED_FILE)) list = JSON.parse(fs.readFileSync(BLOCKED_FILE, 'utf8')); } catch {}
     if (!list.includes(target)) list.push(target);
-    fs.writeFileSync(BLOCKED_FILE, JSON.stringify(list, null, 2));
+    writeJsonSync(BLOCKED_FILE, list);
     try { await sock.updateBlockStatus(target, 'block'); } catch {}
     await sock.sendMessage(chatId, { text: `✅ Blocked @${target.split('@')[0]}.`, mentions: [target] }, { quoted: msg });
   }
