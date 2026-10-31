@@ -95,13 +95,18 @@ test('no command is gated behind an API key — the bot is fully usable with zer
   } finally { process.env.WOLVAREX_API_KEY = saved; }
 });
 
-test('.menu command sends a plain text message (no buttons/interactive payloads)', async () => {
+test('.menu sends ONE image whose caption is the full menu (no buttons)', async () => {
   const { ctx } = await realCtx();
   const sock = fakeSock();
   await menu.execute(sock, fakeMsg('.menu', '5511@s.whatsapp.net'), [], '.', ctx);
-  const payload = sock.sent.at(-1).content;
-  assert.equal(typeof payload.text, 'string');
-  assert.deepEqual(Object.keys(payload).sort(), ['contextInfo', 'mentions', 'text']);
+  assert.equal(sock.sent.length, 1, 'header and command list must be a single message');
+  const payload = sock.sent[0].content;
+  assert.ok(payload.image, 'menu is sent as an image');
+  assert.equal(typeof payload.caption, 'string');
+  assert.match(payload.caption, /^╭━━━〔 🌑 PAXTON MD V\d+ 〕━━━┈⊷/);
+  assert.match(payload.caption, /╭━━〔 .+ · \d+ 〕/);
+  assert.match(payload.caption, /> ᴘᴏᴡᴇʀᴇᴅ ʙʏ Paxton-Tech/);
+  assert.ok(!('text' in payload) && !('buttons' in payload));
   assert.equal(payload.contextInfo.externalAdReply.showAdAttribution, true);
   const drill = fakeSock(); await menu.execute(drill, fakeMsg('.menu fun'), ['fun'], '.', ctx);
   assert.match(drill.sent[0].content.text, /fun/i);

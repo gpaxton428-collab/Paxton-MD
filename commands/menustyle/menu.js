@@ -47,32 +47,30 @@ export default {
       }
 
       const { scope } = planMenu(ctx, { requested: word === 'all' ? 'owner' : word, isOwner: isOwnerOrSudo, isAdmin, inGroup });
-      const { text, header } = buildMainMenu(ctx, { scope, senderJid, groupName, groupJid: inGroup ? chatId : null, isOwner });
+      const { text } = buildMainMenu(ctx, { scope, senderJid, groupName, groupJid: inGroup ? chatId : null, isOwner });
 
-      if (ctx.getGlobalSettings().menuImage ?? true) {
-        try { await sock.sendMessage(chatId, { image: pickMenuImage(), caption: header, ...mention }, { quoted: msg }); }
-        catch (err) { logger.warn('menu', `menu image skipped: ${safeErrorMessage(err)}`); }
-        // A short gap between the image and the (often large) text that
-        // follows avoids tripping WhatsApp's back-to-back message handling
-        // on some accounts, which can otherwise drop the second message.
-        await new Promise((r) => setTimeout(r, 400));
-      }
       const card = getAdsCard(ctx.getGlobalSettings());
-      // The actual command listing — the part that matters most — used to
-      // have no error handling of its own: if this send failed for any
-      // reason (a brief network hiccup, or two messages fired back-to-back
-      // tripping a rate limit) the person got the image card and nothing
-      // else, with no error and no retry. Retry once, and if it still
-      // fails, say so instead of going silent.
+      const extra = { ...mention, ...(card ? { contextInfo: card } : {}) };
+
+      // One message: the menu picture with the whole command list as its
+      // caption. If the picture is switched off or can't be sent, fall back to
+      // the same text on its own (retrying once) so the list never goes missing.
+      if (ctx.getGlobalSettings().menuImage ?? true) {
+        try {
+          return await sock.sendMessage(chatId, { image: pickMenuImage(), caption: text, ...extra }, { quoted: msg });
+        } catch (err) {
+          logger.warn('menu', `menu image+caption failed, falling back to text: ${safeErrorMessage(err)}`);
+        }
+      }
       try {
-        await sock.sendMessage(chatId, { text, ...mention, ...(card ? { contextInfo: card } : {}) }, { quoted: msg });
+        await sock.sendMessage(chatId, { text, ...extra }, { quoted: msg });
       } catch (err) {
-        logger.warn('menu', `menu list send failed, retrying: ${safeErrorMessage(err)}`);
+        logger.warn('menu', `menu send failed, retrying: ${safeErrorMessage(err)}`);
         await new Promise((r) => setTimeout(r, 1200));
         try {
-          await sock.sendMessage(chatId, { text, ...mention, ...(card ? { contextInfo: card } : {}) }, { quoted: msg });
+          await sock.sendMessage(chatId, { text, ...extra }, { quoted: msg });
         } catch (err2) {
-          await reply(sock, msg, `❌ The menu list failed to send: ${safeErrorMessage(err2)}\nTry ${prefix}menu list for a shorter version.`);
+          await reply(sock, msg, `❌ The menu failed to send: ${safeErrorMessage(err2)}\nTry ${prefix}menu list for a shorter version.`);
         }
       }
     } finally {
