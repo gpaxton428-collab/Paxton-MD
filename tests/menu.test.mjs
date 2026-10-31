@@ -8,7 +8,6 @@ import { getAds } from '../lib/menu/ads.js';
 import { collectSections } from '../lib/menu/visibility.js';
 import { setGlobalSetting } from '../lib/settingsStore.js';
 import menu from '../commands/menustyle/menu.js';
-import roast from '../commands/fun/joke.js';
 
 const quiet = console.warn; console.warn = () => {}; test.after(() => { console.warn = quiet; });
 
@@ -89,44 +88,36 @@ test('no command is gated behind an API key — the bot is fully usable with zer
   try {
     const user = collectSections(ctx, 'user', { isOwner: false }).flatMap((s) => s.items.map((i) => i.name));
     assert.ok(user.includes('play'), 'play works offline (youtube-sr + ytdl-core, no key)');
-    assert.ok(user.includes('joke'), 'fun commands keep working offline');
+    assert.ok(!user.includes('joke'), 'fun commands are removed');
     const owner = collectSections(ctx, 'owner', { isOwner: true }).flatMap((s) => s.items);
     assert.ok(!owner.some((i) => i.flagged), 'no command should be flagged as key-missing anymore');
   } finally { process.env.WOLVAREX_API_KEY = saved; }
 });
 
-test('.menu sends ONE image whose caption is the full menu (no buttons)', async () => {
+test('.menu command sends a plain text message (no buttons/interactive payloads)', async () => {
   const { ctx } = await realCtx();
   const sock = fakeSock();
   await menu.execute(sock, fakeMsg('.menu', '5511@s.whatsapp.net'), [], '.', ctx);
-  assert.equal(sock.sent.length, 1, 'header and command list must be a single message');
-  const payload = sock.sent[0].content;
-  assert.ok(payload.image, 'menu is sent as an image');
-  assert.equal(typeof payload.caption, 'string');
-  assert.match(payload.caption, /^╭━━━〔 🌑 PAXTON MD V\d+ 〕━━━┈⊷/);
-  assert.match(payload.caption, /╭━━〔 .+ · \d+ 〕/);
-  assert.match(payload.caption, /> ᴘᴏᴡᴇʀᴇᴅ ʙʏ Paxton-Tech/);
-  assert.ok(!('text' in payload) && !('buttons' in payload));
+  assert.equal(sock.sent.length, 1, 'menu is ONE message — no separate image card');
+  const payload = sock.sent.at(-1).content;
+  assert.equal(typeof payload.text, 'string');
+  assert.ok(!payload.image, 'no image attached');
+  assert.match(payload.text, /^╭━━━〔 🌑 .+ 〕━━━┈⊷/, 'full boxed menu header');
+  assert.ok(payload.text.length > 600, 'full command listing is in the same message');
+  assert.deepEqual(Object.keys(payload).sort(), ['contextInfo', 'mentions', 'text']);
   assert.equal(payload.contextInfo.externalAdReply.showAdAttribution, true);
-  const drill = fakeSock(); await menu.execute(drill, fakeMsg('.menu fun'), ['fun'], '.', ctx);
-  assert.match(drill.sent[0].content.text, /fun/i);
+  const drill = fakeSock(); await menu.execute(drill, fakeMsg('.menu tools'), ['tools'], '.', ctx);
+  assert.match(drill.sent[0].content.text, /tools/i);
   const unk = fakeSock(); await menu.execute(unk, fakeMsg('.menu zzz'), ['zzz'], '.', ctx);
   assert.match(unk.sent[0].content.text, /Unknown menu/);
 });
 
 test('category drill-down paginates and index lists categories', async () => {
   const { ctx } = await realCtx();
-  const page = buildCategory(ctx, { category: 'fun', page: 2, scope: 'user' });
+  const page = buildCategory(ctx, { category: 'tools', page: 2, scope: 'user' });
   assert.match(page, /page 2\//);
-  assert.match(buildIndex(ctx, { scope: 'user', senderJid: '1@s.whatsapp.net' }), /FUN/);
+  assert.match(buildIndex(ctx, { scope: 'user', senderJid: '1@s.whatsapp.net' }), /TOOLS/);
   assert.equal(buildCategory(ctx, { category: 'owner', scope: 'user' }), null);
-});
-
-test('fun commands fall back to the offline list when the API is down', async () => {
-  const { ctx } = await realCtx();
-  const m = mockFetch(() => new Response('', { status: 500 })); const sock = fakeSock();
-  const err = console.error; console.error = () => {};
-  try { await roast.execute(sock, fakeMsg('.joke'), [], '.', ctx); assert.ok(sock.sent[0].content.text.length > 10); } finally { m.restore(); console.error = err; }
 });
 
 test('menu image: bundled pictures are found and picked as buffers', async () => {

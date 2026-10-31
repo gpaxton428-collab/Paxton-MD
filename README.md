@@ -12,9 +12,7 @@
 
 - **370 commands / 148 aliases** in 17 categories, loaded by a fault-tolerant plugin loader (one broken file never stops the bot; duplicates and alias clashes are skipped and reported).
 - **Music** — `.play <song>` searches with the Wolvarex music API, downloads the audio and sends it with title, artist, duration and thumbnail.
-- **AI** — `.flux`, `.imagine`, `.groqai`, `.gpt4`, `.gptdirect`, `.llamachat`, `.translate`.
-- **Fun** — jokes, riddles, trivia, truth/dare, roasts, pickup/flirt lines, quotes, would-you-rather, fun facts (API first, built-in offline lists as fallback).
-- **Downloads / search / tools** — Instagram, TikTok, YouTube audio, video search, website screenshots, weather, image hosting (imgbb / catbox).
+- **Downloads / search / tools** — Instagram, TikTok, YouTube audio, video search.
 - **Group & admin tooling**, welcome/goodbye, anti-spam/link/delete/view-once, automation, sudo list.
 - **Text-only redesigned menus** — 6 views (public, private, group, owner, admin, user) × 8 layouts, permission-aware and compact.
 - **Security-minded defaults** — API key only from the environment, SSRF guard on every URL, credential files unreadable by `.cat/.ls/.download`, `.eval` and `.update` disabled until you enable them, global output redaction.
@@ -85,14 +83,7 @@ All Wolvarex calls go through one client (`lib/api/wolvarex.js`); it reads `WOLV
 | Command(s) | Endpoint(s) |
 |---|---|
 | `.play`, `.songs`, `.ytmp3dl` | `/music/ytmp3-search`, `/music/ytmp3-download` |
-| `.flux`, `.imagine` | `/ai/tools/generate` (`.imagine` tries `/ai/image/dall-e` first) |
-| `.translate` | `/ai/translate` (MyMemory fallback) |
-| `.groqai`, `.gpt4`/`.gptdirect`, `.llamachat` | `/ai/groq`, `/ai/gpt`, `/ai/llama` |
-| `.riddle .pickupline .quote .flirtline .joke .wouldrather .roast .fact .dare .truth .trivia` | `/fun/riddles`, `/fun/pickuplines`, `/fun/quotes`, `/fun/flirt`, `/fun/jokes`, `/fun/wouldyourather`, `/fun/roasts`, `/fun/funfacts`, `/fun/dares`, `/fun/truth`, `/fun/trivia` |
-| `.imgbb`, `.catbox` | `/url/imgbb`, `/url/catbox` |
 | `.videosearch` (`.search`) | `/search/videos` |
-| `.ssweb` | `/tools/screenshot` |
-| `.weather` | `/tools/weather` (wttr.in fallback) |
 | `.instadl` | `/download/instagram/igram` |
 | `.giftovideo .stickertoimg .stickertovideo .videotogif .videotosticker` | `/converter/*` |
 

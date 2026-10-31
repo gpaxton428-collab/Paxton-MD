@@ -3,8 +3,6 @@ import assert from 'node:assert/strict';
 import { SECRET, mockFetch, json } from './helpers.mjs';
 import { getJson, isConfigured } from '../lib/api/wolvarex.js';
 import { extractVideoId } from '../lib/api/youtubeFree.js';
-import { fetchFun, normalizeFun } from '../lib/api/fun.js';
-import { askAi, translateText } from '../lib/api/ai.js';
 import { toUserMessage } from '../lib/utils/errors.js';
 import { findUrl, summarizeShape } from '../lib/api/normalize.js';
 
@@ -56,24 +54,6 @@ test('extractVideoId recognises every common YouTube URL shape', () => {
   assert.equal(extractVideoId('dQw4w9WgXcQ'), 'dQw4w9WgXcQ');
   assert.equal(extractVideoId('../../etc/passwd'), null);
   assert.equal(extractVideoId(''), null);
-});
-
-test('fun endpoints normalise and unknown shapes are rejected', async () => {
-  assert.deepEqual(normalizeFun({ result: { question: 'Q?', answer: 'A' } }), { text: 'Q?', answer: 'A', options: undefined, author: undefined, category: undefined });
-  assert.equal(normalizeFun({ result: ['just a line'] }).text, 'just a line');
-  assert.equal(normalizeFun({ result: { optionA: 'x', optionB: 'y' } }).options.length, 2);
-  assert.equal(normalizeFun({ result: { weird: 1 } }), null);
-  const m = mockFetch(() => json({ result: { joke: 'Why?' } }));
-  try { assert.equal((await fetchFun('joke')).text, 'Why?'); assert.match(m.calls[0], /\/fun\/jokes/); } finally { m.restore(); }
-});
-
-test('AI chat + translate use the right endpoints and fall back for translate', async () => {
-  let m = mockFetch(() => json({ result: 'Hello there' }));
-  try { assert.equal(await askAi('groq', 'hi'), 'Hello there'); assert.match(m.calls[0], /\/ai\/groq/); await askAi('gpt', 'hi'); assert.match(m.calls[1], /\/ai\/gpt/); await askAi('llama', 'hi'); assert.match(m.calls[2], /\/ai\/llama/); } finally { m.restore(); }
-  await assert.rejects(() => askAi('gpt', ''), (e) => e.kind === 'invalid_input');
-  m = mockFetch((url) => (url.includes('/ai/translate') ? new Response('', { status: 500 }) : json({ responseData: { translatedText: 'Hola' } })));
-  try { const r = await translateText('Hello', 'es'); assert.equal(r.text, 'Hola'); assert.equal(r.provider, 'mymemory'); } finally { m.restore(); }
-  await assert.rejects(() => translateText('Hello', 'not a lang!'), (e) => e.kind === 'invalid_input');
 });
 
 test('shape summariser only reveals key names', () => {

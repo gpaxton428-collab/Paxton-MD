@@ -1,7 +1,7 @@
 {
   "name": "paxton-md",
   "version": "3.0.0",
-  "description": "Paxton MD \u2014 clean multi-device WhatsApp bot with 371 verified command modules, group protection, tools, owner/dev/sudo controls, automation, and menu styles.",
+  "description": "Paxton MD \u2014 clean multi-device WhatsApp bot with 281 verified command modules, group protection, tools, owner/dev/sudo controls, automation, and menu styles.",
   "type": "module",
   "main": "index.js",
   "author": "Paxton",

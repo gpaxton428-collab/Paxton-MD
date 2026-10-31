@@ -100,16 +100,16 @@ test('plugin loader survives broken, duplicate and conflicting plugins', async (
 test('every real command loads, is unique and is well-formed', async () => {
   const { reg } = await realCtx();
   assert.deepEqual(reg.report.failed, []); assert.deepEqual(reg.report.duplicates, []); assert.deepEqual(reg.report.aliasConflicts, []);
-  assert.ok(reg.commands.size > 300);
+  assert.ok(reg.commands.size > 250);
   for (const c of reg.commands.values()) assert.equal(typeof c.description === 'string' || c.description === undefined, true, c.name);
 });
 
 test('required commands exist and privileged ones are protected', async () => {
   const { reg } = await realCtx();
-  const need = ['play', 'songs', 'ytmp3dl', 'translate', 'riddle', 'pickupline', 'quote', 'flirtline', 'joke', 'wouldrather', 'roast', 'fact', 'dare', 'truth', 'trivia', 'videosearch', 'weather', 'instadl', 'fbdl', 'tiktokdl', 'wordle', 'qrcode', 'menu', 'menustyle', 'setmenustyle', 'stylemenu', 'resetmenustyle', 'setbotpp', 'ping', 'runtime', 'plugins', 'devcheck', 'reloadconfig', 'userinfo', 'profile', 'avatar', 'afk', 'reminder', 'time', 'define', 'search', 'usermenu'];
+  const need = ['play', 'songs', 'ytmp3dl', 'videosearch', 'instadl', 'fbdl', 'tiktokdl', 'qrcode', 'menu', 'menustyle', 'setmenustyle', 'stylemenu', 'resetmenustyle', 'setbotpp', 'ping', 'runtime', 'plugins', 'devcheck', 'reloadconfig', 'userinfo', 'profile', 'avatar', 'afk', 'reminder', 'time', 'define', 'search', 'usermenu'];
   const has = (n) => reg.commands.has(n) || reg.aliases.has(n);
   assert.deepEqual(need.filter((n) => !has(n)), []);
-  for (const n of ['buttonmenu', 'buttontest', 'flux', 'gpt4', 'gptdirect', 'groqai', 'imagine', 'llamachat', 'chatbot', 'aiprovider', 'catbox', 'imgbb', 'ssweb', 'envcheck']) assert.equal(has(n), false, `${n} must be gone`);
+  for (const n of ['buttonmenu', 'buttontest', 'flux', 'gpt4', 'gptdirect', 'groqai', 'imagine', 'llamachat', 'chatbot', 'aiprovider', 'catbox', 'imgbb', 'ssweb', 'envcheck', ...['translate', 'riddle', 'pickupline', 'quote', 'flirtline', 'joke', 'wouldrather', 'roast', 'fact', 'dare', 'truth', 'trivia', 'weather', 'wordle']]) assert.equal(has(n), false, `${n} must be gone`);
   for (const n of ['eval', 'gitclone', 'join', 'leaveall', 'restart', 'shutdown', 'update', 'forwardmsg']) {
     const c = reg.commands.get(n); assert.ok(c.ownerOnly && c.strictOwner, `${n} must be strict-owner`);
   }

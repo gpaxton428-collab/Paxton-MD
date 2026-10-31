@@ -1,9 +1,3 @@
-## 3.1.0
-- **Menu**: `.menu` now sends ONE message — the menu picture with the full command list as its caption (header, every category one command per line, footer). Falls back to plain text if the picture can't be sent. Style 1 header matches the new layout (no blank line under the panel title).
-- **New commands ported from Silva MD** (rewritten for Paxton, no new dependencies, no API keys): `.ip`, `.country`, `.crypto`, `.news`, `.bible`, `.wiki`, `.paste`, `.device`, `.react`, `.imdb`, `.anime`, `.manga`, `.meme`, `.numberfact`, `.hangman` (`.hm`), `.emojimix`, `.notes`, and owner-only `.edit`.
-- **From Atlas-MD**: 26 anime reaction GIF commands (`.hug .pat .slap .kiss .bonk .cuddle ...`, tag or reply to someone; `.reactions` lists them), `.couplepp`, `.gethtml`. `.kick` stays the admin command, so the kick reaction is `.reactions kick`.
-- `tests/menu.test.mjs` updated for the single image+caption menu.
-
 ## 2.8.0
 - Paxton MD cleanup build.
 - Pinned Baileys to 6.7.24.
